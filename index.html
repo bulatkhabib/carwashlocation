@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>Прибыль автомойки</title>
+	<style>
+		body {
+			background-color: #f2f2f2;
+			font-family: Arial, sans-serif;
+		}
+		.container {
+			width: 50%;
+			margin: 0 auto;
+			text-align: center;
+		}
+		h1 {
+			margin-top: 50px;
+		}
+		input[type=text] {
+			padding: 10px;
+			border-radius: 5px;
+			border: none;
+			box-shadow: 0px 0px 5px rgba(0,0,0,0.1);
+			width: 60%;
+			margin: 10px;
+		}
+		input[type=submit] {
+			background-color: #007bff;
+			color: white;
+			padding: 10px;
+			border: none;
+			border-radius: 5px;
+			cursor: pointer;
+			margin-left: 10px;
+			box-shadow: 0px 0px 5px rgba(0,0,0,0.1);
+		}
+		input[type=submit]:hover {
+			background-color: #0062cc;
+		}
+		input[type=next] {
+			background-color: #007bff;
+			color: white;
+			padding: 10px;
+			border: none;
+			border-radius: 5px;
+			cursor: pointer;
+			margin-left: 10px;
+			box-shadow: 0px 0px 5px rgba(0,0,0,0.1);
+		}
+		input[type=next]:hover {
+			background-color: #0062cc;
+		}
+		input[type=number] {
+			padding: 10px;
+			border-radius: 5px;
+			border: none;
+			box-shadow: 0px 0px 5px rgba(0,0,0,0.1);
+			width: 20%;
+		}
+		ul {
+			list-style-type: none;
+			padding: 0;
+		}
+		label {
+			font-weight: bold;
+		}
+		.hidden {
+			display: none;
+		}
+	</style>
+</head>
+<body>
+	<div class="container">
+		<h1>Рассчитайте прибыль автомойки</h1>
+		<form>
+			<input type="text" id="address" placeholder="Введите адрес">
+		</form>
+		<br><br>
+		<label for="services">Вид автомойки:</label>
+		<ul id="services">
+			<li><input type="radio" id="self-service" name="carwash-type" value="self-service" onchange="toggleSalaryInput()"><label for="self-service">Автомойка самообслуживания</label></li>
+			<li><input type="radio" id="standard" name="carwash-type" value="standard" onchange="toggleSalaryInput()"><label for="standard">Стандартная автомойка</label></li>
+			<li><input type="radio" id="no-preference" name="carwash-type" value="no-preference" onchange="toggleSalaryInput()"><label for="no-preference">Нет предпочтений</label></li>
+		</ul>
+		<div id="fieldsContainer" style="display: none;" class="container">
+			<label for="price" id="job-price">Введите зарплату одного мойщика:</label>
+			<input for="standard" type="number" id="price" name="price" min="0" max="1000000" step="1000">
+		</div>
+        <input type="submit" onclick="search()" value="Рассчитать">
+	</div>
+	<ul id="results"></ul>
+    <script>
+      function toggleSalaryInput() {
+  			const standardCheckbox = document.getElementById("standard");
+  			const noPreferenceCheckbox = document.getElementById("no-preference");
+  			const selfService = document.getElementById("self-service");
+  			const fieldsContainer = document.getElementById("fieldsContainer");
+  			const salary = document.getElementById("price");
+
+  			if (standardCheckbox.checked || noPreferenceCheckbox.checked) {
+    			fieldsContainer.style.display = "block";
+  			} else {
+    			fieldsContainer.style.display = "none";
+  	  		}
+
+  	  		if (selfService.checked) {
+      			salary.value = "";
+    		}
+  	  }
+
+      function search() {
+        const searchString = document.getElementById('address').value;
+        const price = document.getElementById('price').value;
+        const checkboxValues = document.querySelectorAll('input[type="radio"]:checked');
+
+        // Создаем объект для хранения параметров запроса
+        const queryParams = {};
+
+        // Если строка поиска не пустая, добавляем ее в параметры запроса
+        if (searchString !== '') {
+            queryParams.search = searchString;
+        }
+
+        // Если цена не пустая, добавляем ее в параметры запроса
+        if (price !== '') {
+            queryParams.price = price;
+        }
+
+        // Если выбраны какие-то чекбоксы, добавляем их значения в параметры запроса
+        if (checkboxValues.length > 0) {
+            const checkboxes = Array.from(checkboxValues).map(cb => cb.value);
+            queryParams.types = checkboxes;
+        }
+
+        // Формируем строку запроса с помощью URLSearchParams
+        const params = new URLSearchParams(queryParams).toString();
+
+        const url = `http://127.0.0.1:5000/search?${params}`;
+        fetch(url, {
+        method: 'GET'
+        })
+          .then(response => response.json())
+          .then(data => {
+            const resultsList = document.getElementById("results");
+            resultsList.innerHTML = "";
+            data.results.forEach(item => {
+            	const li = document.createElement('li');
+            	li.textContent = item;
+            	resultsList.appendChild(li);
+			});
+          });
+      }
+    </script>
+</body>
+</html>
